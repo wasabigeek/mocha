@@ -10,10 +10,10 @@ module Mocha
   class Invocation
     attr_reader :method_name, :block
 
-    def initialize(mock, method_name, *arguments, &block)
+    def initialize(mock, method_name, parameters, block)
       @mock = mock
       @method_name = method_name
-      @arguments = arguments
+      @parameters = parameters
       @block = block
       @yields = []
       @result = nil
@@ -51,18 +51,18 @@ module Mocha
       @result = ThrownObject.new(tag, value)
     end
 
-    def arguments
-      @arguments.dup
+    def parameters
+      @parameters
     end
 
     def call_description
-      description = "#{@mock.mocha_inspect}.#{@method_name}#{ParametersMatcher.new(@arguments).mocha_inspect}"
+      description = "#{@mock.mocha_inspect}.#{@method_name}#{ParametersMatcher.new(@parameters.to_a).mocha_inspect}"
       description << ' { ... }' unless @block.nil?
       description
     end
 
     def short_call_description
-      "#{@method_name}(#{@arguments.join(', ')})"
+      "#{@method_name}(#{@parameters.to_a.join(', ')})"
     end
 
     def result_description

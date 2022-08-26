@@ -9,16 +9,13 @@ module Mocha
       @matching_block = matching_block
     end
 
-    def match?(actual_parameters = [])
+    def match?(actual_parameters = Parameters.new)
       if @matching_block
-        @matching_block.call(*actual_parameters)
+        # ideally also separate positional and keyword args, but would be a breaking API change
+        @matching_block.call(*actual_parameters.to_a)
       else
         parameters_match?(actual_parameters)
       end
-    end
-
-    def parameters_match?(actual_parameters)
-      matchers.all? { |matcher| matcher.matches?(actual_parameters) } && actual_parameters.empty?
     end
 
     def mocha_inspect
@@ -28,12 +25,15 @@ module Mocha
       "(#{signature})"
     end
 
+    private
+
+    def parameters_match?(actual_parameters)
+      # TODO: match keyword args separately
+      matchers.all? { |matcher| matcher.matches?(actual_parameters) } && actual_parameters.empty?
+    end
+
     def matchers
-      if (last_parameter = @expected_parameters.last).is_a?(Hash)
-        @expected_parameters[0...-1].map(&:to_matcher) + [ParameterMatchers::LastPositionalHash.new(last_parameter)]
-      else
-        @expected_parameters.map(&:to_matcher)
-      end
+      @expected_parameters.map(&:to_matcher)
     end
   end
 end

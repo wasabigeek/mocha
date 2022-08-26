@@ -310,16 +310,21 @@ module Mocha
 
     # @private
     def method_missing(symbol, *arguments, &block) # rubocop:disable Style/MethodMissingSuper
+      handle_method_call(symbol, Parameters.from_ruby2_keywords(arguments, block))
+    end
+    ruby2_keywords(:method_missing) if RUBY_V3_PLUS
+
+    # @private
+    def handle_method_call(symbol, parameters)
       check_expiry
       check_responder_responds_to(symbol)
-      invocation = Invocation.new(self, symbol, *arguments, &block)
+      invocation = Invocation.new(self, symbol, parameters)
       if (matching_expectation_allowing_invocation = all_expectations.match_allowing_invocation(invocation))
         matching_expectation_allowing_invocation.invoke(invocation)
       elsif (matching_expectation = all_expectations.match(invocation)) || (!matching_expectation && !@everything_stubbed)
         raise_unexpected_invocation_error(invocation, matching_expectation)
       end
     end
-    ruby2_keywords(:method_missing) if RUBY_V3_PLUS
 
     # @private
     def respond_to_missing?(symbol, include_all)

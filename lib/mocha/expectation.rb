@@ -220,7 +220,8 @@ module Mocha
     #   object.expected_method(17)
     #   # => verify fails
     def with(*expected_parameters, &matching_block)
-      @parameters_matcher = ParametersMatcher.new(expected_parameters, &matching_block)
+      parameters = Parameters.from_ruby2_keywords(expected_parameters)
+      @parameters_matcher = ParametersMatcher.new(parameters, matching_block)
       self
     end
     ruby2_keywords(:with) if RUBY_V3_PLUS
@@ -592,7 +593,7 @@ module Mocha
 
     # @private
     def match?(invocation)
-      @method_matcher.match?(invocation.method_name) && @parameters_matcher.match?(invocation.arguments) && @block_matcher.match?(invocation.block) && in_correct_order?
+      @method_matcher.match?(invocation.method_name) && @parameters_matcher.match?(invocation.parameters) && @block_matcher.match?(invocation.block) && in_correct_order?
     end
 
     # @private
